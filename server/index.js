@@ -26,6 +26,7 @@ async function scrapeURL(url) {
   const page = await browser.newPage()
   await page.goto(url)
   // await page.screenshot({ path: 'screenshot.png' })
+  // await page.select('.perPage', '100')
   const pageData = await page.evaluate(() => {
     return { html: document.documentElement.innerHTML }
   })
@@ -33,6 +34,14 @@ async function scrapeURL(url) {
   $(`.productDetailTitle`, pageData.html).each((i, title) => {
     const cardName = $(title).text()
     cards.push({ id: i, cardName })
+  })
+  $(`.sellDollarAmount`, pageData.html).each((i, price) => {
+    const cardPrice = $(price).text()
+    cards.map((card) => {
+      if (card.id == i) {
+        card.sellPrice = cardPrice
+      }
+    })
   })
   await page.goto(url + '?page=2')
   const pageData2 = await page.evaluate(() => {
@@ -42,6 +51,14 @@ async function scrapeURL(url) {
   $2(`.productDetailTitle`, pageData2.html).each((i, title) => {
     const cardName = $(title).text()
     cards.push({ id: i + 25, cardName })
+  })
+  $2(`.sellDollarAmount`, pageData2.html).each((i, price) => {
+    const cardPrice = $(price).text()
+    cards.map((card) => {
+      if (card.id + 25 == i + 25) {
+        card.sellPrice = cardPrice
+      }
+    })
   })
 
   console.log(cards)

@@ -4,7 +4,7 @@ Key Considerations:
 
 MVP:
 - [X] Setup/test scraping data from 1 page
-- [ ] Scrape relevant data from page
+- [X] Scrape relevant data from page
 - [X] Allow for multi-page scraping
 - [ ] Setup delay/timers for scraping app/Search for ways to lessen chance of getting IP banned
 - [ ] Setup database or JSON file
