@@ -1,6 +1,6 @@
 Key Considerations:
 - Client really doesn't want to get IP-banned. May need to research this before any real progress can be made.
-- Cheerio and Axios is recommended from research but familiarity with syntax from JSDOM and Superagent are higher. At the very least I want to use Superagent since JSDOM is a library I haven't actually used(?) but has DOM manipulation syntax (queryselector)
+- Cheerio and Axios is recommended from research but familiarity with syntax from JSDOM and Superagent are higher.
 
 MVP:
 - [X] Setup/test scraping data from 1 page
@@ -16,4 +16,5 @@ MVP:
 Stretch:
 - [ ] Create front-end to allow other ways for user to view/manipulate data
 - [ ] Research including other APIs with relevant or useful data
-- [ ] Research use of puppeteer or playwright/ScrapingAntClient might be easier to use and may help being blocked
+- [X] Research use of puppeteer or playwright
+- [ ] ScrapingAntClient might be easier to use and may help being blocked

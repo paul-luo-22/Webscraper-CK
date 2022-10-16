@@ -4,9 +4,9 @@ const PORT = process.env.PORT || 3000
 const cheerio = require('cheerio')
 
 const puppeteer = require('puppeteer')
-// const request = require('superagent')
+const request = require('superagent')
 // const Agent = require('agentkeepalive').HttpsAgent
-// const axios = require('axios')
+const axios = require('axios')
 
 // const agent = request.agent()
 // const keepaliveAgent = new Agent({
@@ -35,14 +35,12 @@ async function scrapeURL(url) {
     const cardName = $(title).text()
     cards.push({ id: i, cardName })
   })
-  $(`.sellDollarAmount`, pageData.html).each((i, price) => {
-    const cardPrice = $(price).text()
-    cards.map((card) => {
-      if (card.id == i) {
-        card.sellPrice = cardPrice
-      }
-    })
-  })
+  // $(`.sellDollarAmount`, pageData.html).each((i, price) => {
+  //   const cardPrice = $(price).text()
+  //   cards.map((card) => {
+  //     card.sellPrice = cardPrice
+  //   })
+  // })
   await page.goto(url + '?page=2')
   const pageData2 = await page.evaluate(() => {
     return { html: document.documentElement.innerHTML }
@@ -52,14 +50,14 @@ async function scrapeURL(url) {
     const cardName = $(title).text()
     cards.push({ id: i + 25, cardName })
   })
-  $2(`.sellDollarAmount`, pageData2.html).each((i, price) => {
-    const cardPrice = $(price).text()
-    cards.map((card) => {
-      if (card.id + 25 == i + 25) {
-        card.sellPrice = cardPrice
-      }
-    })
-  })
+  // $2(`.sellDollarAmount`, pageData2.html).each((i, price) => {
+  //   const cardPrice = $(price).text()
+  //   cards.map((card) => {
+  //     if (card.id + 25 == i + 25) {
+  //       card.sellPrice = cardPrice
+  //     }
+  //   })
+  // })
 
   console.log(cards)
   browser.close()
@@ -81,7 +79,7 @@ scrapeURL(sellURL)
 //   await Promise.all([
 //     request
 //       .get(sellURL)
-//      // .agent(keepaliveAgent)
+//       // .agent(keepaliveAgent)
 //       // .withCredentials()
 //       .end((err, res) => {
 //         const html = res.text
@@ -94,7 +92,7 @@ scrapeURL(sellURL)
 //       }),
 //     request
 //       .get(sellURL)
-//      // .agent(keepaliveAgent)
+//       // .agent(keepaliveAgent)
 //       // .withCredentials()
 //       .query({ page: `${pageNum}` })
 //       .end((err, res) => {
@@ -124,9 +122,7 @@ scrapeURL(sellURL)
 //     })
 //     console.log(cards)
 //   })
-//   .then(()=>
-//     axios(sellURL).then
-//   )
+//   .then(() => axios(sellURL).then)
 //   .catch((err) => {
 //     console.log(err)
 //   })
