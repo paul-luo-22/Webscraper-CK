@@ -1,0 +1,75 @@
+const cheerio = require('cheerio')
+
+const puppeteer = require('puppeteer')
+
+const sellURL = `https://www.cardkingdom.com/purchasing/mtg_singles`
+const cards = []
+let pageNum = 2
+
+async function scrapeURL(url) {
+  const browser = await puppeteer.launch()
+  const page = await browser.newPage()
+  await page.setRequestInterception(true)
+  page.on('request', (req) => {
+    if (
+      req.resourceType() == 'stylesheet' ||
+      req.resourceType() == 'font' ||
+      req.resourceType() == 'image'
+    ) {
+      req.abort()
+    } else {
+      req.continue()
+    }
+  })
+  //Disabling CSS + Images from https://www.scrapehero.com/how-to-increase-web-scraping-speed-using-puppeteer/
+
+  try {
+    await page.goto(url)
+    await page.click(`.perPage`)
+    await page.select(`.perPage`, '100')
+    await page.waitForTimeout(1000)
+
+    let pageData = await page.evaluate(() => {
+      return { html: document.documentElement.innerHTML }
+    })
+    let $ = await cheerio.load(pageData.html)
+
+    // await page.screenshot({ path: 'screenshot.png', fullPage: true })
+
+    $(`.itemContentWrapper`, pageData.html).each((i, res) => {
+      const cardName = $(`.productDetailTitle`, res).text()
+      const cardSellPrice = $(`.usdSellPrice`, res).text().substring(1)
+      cards.push({ id: i, cardName, cardSellPrice })
+    })
+
+    await page.waitForTimeout(1000)
+
+    for (let i = 0; i < 1; i++) {
+      await page.goto(url + '?page=' + pageNum)
+
+      let pageData = await page.evaluate(() => {
+        return { html: document.documentElement.innerHTML }
+      })
+
+      $ = await cheerio.load(pageData.html)
+
+      await page.screenshot({ path: 'screenshot2.png', fullPage: true })
+
+      $(`.itemContentWrapper`, pageData.html).each((i, res) => {
+        const cardName = $('.productDetailTitle', res).text()
+        const cardSellPrice = $('.usdSellPrice', res).text().substring(1)
+        cards.push({ id: (pageNum - 1) * 100 + i, cardName, cardSellPrice })
+      })
+      pageNum++
+      await page.waitForTimeout(3000)
+    }
+    console.log(pageNum)
+    console.log(cards)
+  } catch (err) {
+    console.log(err)
+  } finally {
+    await browser.close()
+  }
+}
+
+scrapeURL(sellURL)
