@@ -83,7 +83,7 @@ async function scrapeURL(url, url2) {
     })
     $ = await cheerio.load(pageData.html)
 
-    await page.screenshot({ path: 'screenshot.png', fullPage: true })
+    // await page.screenshot({ path: 'screenshot.png', fullPage: true })
 
     $(`.itemContentWrapper`, pageData.html).each((i, res) => {
       const cardName = $(`.productDetailTitle`, res).text().trim()

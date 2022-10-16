@@ -6,7 +6,7 @@ const buyCards = []
 const combinedCardsArr = []
 let counter = 0
 
-async function scrapeURLMimic() {
+async function scrapeURLMimic(callback) {
   fs.readFile('page1.html', 'utf8', function (err, data) {
     if (err) throw err
 
@@ -70,6 +70,16 @@ async function scrapeURLMimic() {
       buyCards.push({ id: i + 100, cardName, cardSet, cardBuyPrice })
     })
     await calcSellBuy(cards, buyCards)
+    fs.writeFile(
+      './data/sellData.json',
+      JSON.stringify(cards),
+      'utf-8',
+      (err) => {
+        if (err) {
+          throw err
+        }
+      }
+    )
   })
 }
 
