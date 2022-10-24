@@ -1,5 +1,5 @@
 const cheerio = require('cheerio')
-
+const fs = require('fs')
 const puppeteer = require('puppeteer')
 
 const sellURL = `https://www.cardkingdom.com/purchasing/mtg_singles`
@@ -43,17 +43,18 @@ async function scrapeURL(url, url2) {
 
     $(`.itemContentWrapper`, pageData.html).each((i, res) => {
       const cardName = $(`.productDetailTitle`, res).text().trim()
+      const cardSet = $('.productDetailSet', res).text().trim()
       const cardSellPrice = $(`.usdSellPrice`, res)
         .text()
         .trim()
         .substring(1)
         .replace(/,/g, '')
-      cards.push({ id: i, cardName, cardSellPrice })
+      cards.push({ id: i, cardName, cardSet, cardSellPrice })
     })
 
     await page.waitForTimeout(1000)
 
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < 99; i++) {
       await page.goto(url + '?page=' + pageNum)
 
       let pageData = await page.evaluate(() => {
@@ -66,12 +67,18 @@ async function scrapeURL(url, url2) {
 
       $(`.itemContentWrapper`, pageData.html).each((i, res) => {
         const cardName = $('.productDetailTitle', res).text().trim()
+        const cardSet = $('.productDetailSet', res).text().trim()
         const cardSellPrice = $('.usdSellPrice', res)
           .text()
           .trim()
           .substring(1)
           .replace(/,/g, '')
-        cards.push({ id: (pageNum - 1) * 100 + i, cardName, cardSellPrice })
+        cards.push({
+          id: (pageNum - 1) * 100 + i,
+          cardName,
+          cardSet,
+          cardSellPrice,
+        })
       })
       pageNum++
       await page.waitForTimeout(3000)
@@ -87,18 +94,19 @@ async function scrapeURL(url, url2) {
 
     $(`.itemContentWrapper`, pageData.html).each((i, res) => {
       const cardName = $(`.productDetailTitle`, res).text().trim()
+      const cardSet = $('.productDetailSet', res).text().trim()
       const cardBuyPrice = $(`.stylePrice`, res)
         .first()
         .text()
         .trim()
         .substring(1)
         .replace(/,/g, '')
-      buyCards.push({ id: i, cardName, cardBuyPrice })
+      buyCards.push({ id: i, cardName, cardSet, cardBuyPrice })
     })
 
     await page.waitForTimeout(1000)
 
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < 99; i++) {
       await page.goto(buyURL + '?page=' + buyPageNum)
 
       pageData = await page.evaluate(() => {
@@ -109,6 +117,7 @@ async function scrapeURL(url, url2) {
 
       $(`.itemContentWrapper`, pageData.html).each((i, res) => {
         const cardName = $('.productDetailTitle', res).text().trim()
+        const cardSet = $('.productDetailSet', res).text().trim()
         const cardBuyPrice = $('.stylePrice', res)
           .first()
           .text()
@@ -118,14 +127,45 @@ async function scrapeURL(url, url2) {
         buyCards.push({
           id: (buyPageNum - 1) * 100 + i,
           cardName,
+          cardSet,
           cardBuyPrice,
         })
       })
       buyPageNum++
       await page.waitForTimeout(3000)
     }
-    // await calcSellBuy(cards, buyCards)
-    console.log(JSON.stringify(buyCards))
+    await calcSellBuy(cards, buyCards)
+    fs.writeFile(
+      './data/sellData.json',
+      JSON.stringify(cards),
+      'utf-8',
+      (err) => {
+        if (err) {
+          throw err
+        }
+      }
+    )
+    fs.writeFile(
+      './data/buyData.json',
+      JSON.stringify(buyCards),
+      'utf-8',
+      (err) => {
+        if (err) {
+          throw err
+        }
+      }
+    )
+    fs.writeFile(
+      './data/sellBuyData.json',
+      JSON.stringify(combinedCardsArr),
+      'utf-8',
+      (err) => {
+        if (err) {
+          throw err
+        }
+      }
+    )
+    // console.log(JSON.stringify(combinedCardsArr))
   } catch (err) {
     console.log(err)
   } finally {
@@ -133,32 +173,32 @@ async function scrapeURL(url, url2) {
   }
 }
 
-// async function calcSellBuy(sellArr, buyArr) {
-//   await sellArr.forEach((sellObj) => {
-//     buyArr.find((buyObj) => {
-//       if (
-//         sellObj.cardName === buyObj.cardName &&
-//         sellObj.cardSet === buyObj.cardSet
-//       ) {
-//         combinedCardsArr.push({
-//           id: counter,
-//           // sellId: sellObj.id,
-//           // buyId: buyObj.id,
-//           cardName: sellObj.cardName,
-//           cardSet: sellObj.cardSet,
-//           sellPrice: sellObj.cardSellPrice,
-//           buyPrice: buyObj.cardBuyPrice,
-//           sellBuyPerc: Number(
-//             (sellObj.cardSellPrice / buyObj.cardBuyPrice).toFixed(3)
-//           ),
-//         })
-//         counter++
-//         // combinedCardsArr.push(sellObj.cardName)
-//       }
-//     })
-//   })
-//   console.log(JSON.stringify(combinedCardsArr))
-//   // combinedCardsArr.sort()
-// }
+async function calcSellBuy(sellArr, buyArr) {
+  await sellArr.forEach((sellObj) => {
+    buyArr.find((buyObj) => {
+      if (
+        sellObj.cardName === buyObj.cardName &&
+        sellObj.cardSet === buyObj.cardSet
+      ) {
+        combinedCardsArr.push({
+          id: counter,
+          // sellId: sellObj.id,
+          // buyId: buyObj.id,
+          cardName: sellObj.cardName,
+          cardSet: sellObj.cardSet,
+          sellPrice: sellObj.cardSellPrice,
+          buyPrice: buyObj.cardBuyPrice,
+          sellBuyPerc: Number(
+            (sellObj.cardSellPrice / buyObj.cardBuyPrice).toFixed(3)
+          ),
+        })
+        counter++
+        // combinedCardsArr.push(sellObj.cardName)
+      }
+    })
+  })
+  // console.log(JSON.stringify(combinedCardsArr))
+  // combinedCardsArr.sort()
+}
 
 scrapeURL(sellURL, buyURL)
